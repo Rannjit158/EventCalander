@@ -1,95 +1,131 @@
+<!-- filepath: resources/views/events/index.blade.php -->
 @extends('layouts.guest')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <!-- Calendar Header -->
-    <div class="flex items-center justify-between mb-4">
-        <h2 class="text-2xl font-semibold text-gray-800">Event Calendar</h2>
-        <div class="flex items-center gap-3">
-            <!-- View Switcher Dropdown -->
-            <div class="relative z-50" id="viewDropdown">
-                <button id="viewBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg shadow">
+<div class="bg-white p-6 rounded-2xl shadow max-w-full mx-auto">
+    <!-- Flash messages -->
+    @if(session('success'))
+        <div class="mb-4 p-3 rounded bg-green-100 text-green-800">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="mb-4 p-3 rounded bg-red-100 text-red-800">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold text-blue-700">Event Calendar</h1>
+
+        <div class="flex space-x-2">
+            <!-- Dropdown for view switch -->
+            <div class="relative">
+                <button id="viewDropdownBtn"
+                    class="bg-gray-100 px-4 py-2 rounded shadow hover:bg-gray-200 flex items-center">
                     View ▾
                 </button>
-                <div id="viewMenu" class="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow hidden z-50">
-                    <button data-view="dayGridMonth" class="block w-full text-left px-4 py-2 hover:bg-gray-100">Month</button>
-                    <button data-view="timeGridWeek" class="block w-full text-left px-4 py-2 hover:bg-gray-100">Week</button>
-                    <button data-view="timeGridDay" class="block w-full text-left px-4 py-2 hover:bg-gray-100">Day</button>
-                    <button data-view="listWeek" class="block w-full text-left px-4 py-2 hover:bg-gray-100">List</button>
+                <div id="viewDropdown"
+                     class="hidden absolute right-0 mt-2 w-40 bg-white rounded shadow border z-10">
+                    <button data-view="dayGridMonth" class="block w-full px-4 py-2 hover:bg-gray-100">Month</button>
+                    <button data-view="timeGridWeek" class="block w-full px-4 py-2 hover:bg-gray-100">Week</button>
+                    <button data-view="timeGridDay" class="block w-full px-4 py-2 hover:bg-gray-100">Day</button>
+                    <button data-view="listWeek" class="block w-full px-4 py-2 hover:bg-gray-100">List</button>
                 </div>
             </div>
 
-            <!-- Add Event Button -->
-            <button id="openFormBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition">
-                + Add Event
-            </button>
+            <!-- Add event button -->
+            <a href="{{ route('events.create') }}"
+               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">
+               + Add Event
+            </a>
         </div>
     </div>
 
-    <!-- Full Width Calendar -->
-    <div class="bg-white rounded-2xl shadow p-6">
-        <div id="calendar" class="rounded-lg border border-gray-200 p-2"></div>
-    </div>
+    <!-- Calendar -->
+    <div id='calendar'></div>
+
+    <!-- Event List -->
+
+<h2 class="text-xl font-semibold mt-8 mb-4 text-blue-700">Event List</h2>
+<div class="overflow-x-auto">
+    <table class="w-full text-sm border border-gray-200 rounded">
+        <thead class="bg-gray-100 text-left">
+            <tr>
+                <th class="px-4 py-2">Title</th>
+                <th class="px-4 py-2">Date & Time</th>
+                <th class="px-4 py-2">Email</th>
+                <th class="px-4 py-2">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($events as $event)
+            <tr class="border-t hover:bg-gray-50">
+                <td class="px-4 py-2 font-medium">{{ $event->title }}</td>
+                <td class="px-4 py-2">{{ \Carbon\Carbon::parse($event->event_at)->format('M d, Y H:i') }}</td>
+                <td class="px-4 py-2">{{ $event->email }}</td>
+                <td class="px-4 py-2">
+                    <!-- Actions Dropdown -->
+                    <div class="relative inline-block text-left">
+                        <button onclick="toggleDropdown({{ $event->id }})"
+                                class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded">
+                            Actions ▾
+                        </button>
+                        <div id="dropdown-{{ $event->id }}" class="hidden absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg z-10">
+
+                            <a href="{{ route('events.edit', $event->id) }}"
+                               class="block px-4 py-2 text-sm hover:bg-gray-100">Edit</a>
+                            <form action="{{ route('events.destroy', $event->id) }}" method="POST"
+                                  onsubmit="return confirm('Are you sure you want to delete this event?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="4" class="px-4 py-2 text-gray-500">No events found</td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
 </div>
-
-<!-- Modal -->
-<div id="eventModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white w-full max-w-lg rounded-2xl shadow-lg p-6 relative">
-        <button id="closeModalBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">&times;</button>
-        <h2 class="text-xl font-semibold mb-4 text-gray-800">Add Event</h2>
-        <form id="eventForm" class="space-y-4">
-            @csrf
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Title</label>
-                <input name="title" class="mt-1 w-full border rounded-lg px-3 py-2" required />
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Description</label>
-                <textarea name="description" rows="3" class="mt-1 w-full border rounded-lg px-3 py-2"></textarea>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Event Date & Time</label>
-                <input type="datetime-local" name="event_at" class="mt-1 w-full border rounded-lg px-3 py-2" required />
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Recipient Email</label>
-                <input type="email" name="email" class="mt-1 w-full border rounded-lg px-3 py-2" required />
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Reminder (minutes before)</label>
-                <input type="number" name="reminder_minutes_before" min="0" max="1440" value="15" class="mt-1 w-full border rounded-lg px-3 py-2" />
-            </div>
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2">Save Event</button>
-        </form>
-        <div id="flash" class="hidden mt-4 p-3 rounded-lg text-sm font-medium"></div>
-    </div>
-</div>
-
-<!-- FullCalendar -->
-<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
-
-<!-- Custom Styling -->
-<style>
-    /* Highlight Today */
-    .fc-daygrid-day.fc-today {
-        background-color: #dbeafe !important; /* light blue */
-        border: 2px solid #2563eb !important; /* blue border */
-    }
-    .fc-daygrid-day.fc-today .fc-daygrid-day-top {
-        font-weight: 600;
-        color: #1e40af;
-    }
-    /* Hover effect for days */
-    .fc-daygrid-day:hover {
-        background-color: #f0f9ff;
-    }
-</style>
 
 <script>
-    const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    function toggleDropdown(id) {
+        document.querySelectorAll('[id^="dropdown-"]').forEach(el => {
+            if (el.id !== 'dropdown-' + id) el.classList.add('hidden');
+        });
+        document.getElementById('dropdown-' + id).classList.toggle('hidden');
+    }
+    // Close dropdown on outside click
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('[id^="dropdown-"]') && !e.target.closest('button[onclick^="toggleDropdown"]')) {
+            document.querySelectorAll('[id^="dropdown-"]').forEach(el => el.classList.add('hidden'));
+        }
+    });
+</script>
 
+
+<!-- FullCalendar CSS/JS -->
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet'>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+
+<script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Dropdown toggle
+        const dropdownBtn = document.getElementById('viewDropdownBtn');
+        const dropdown = document.getElementById('viewDropdown');
+        dropdownBtn.onclick = () => dropdown.classList.toggle('hidden');
+
+        // Calendar
         const calendarEl = document.getElementById('calendar');
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
@@ -97,68 +133,19 @@
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
-                right: ''
+                right: '' // views hidden, we use dropdown
             },
             events: '{{ route('events.feed') }}',
         });
         calendar.render();
 
-        /
-        const viewBtn = document.getElementById('viewBtn');
-        const viewMenu = document.getElementById('viewMenu');
-        viewBtn.addEventListener('click', () => viewMenu.classList.toggle('hidden'));
-        viewMenu.querySelectorAll('button').forEach(btn => {
-            btn.addEventListener('click', () => {
+        // Dropdown view change
+        dropdown.querySelectorAll('button[data-view]').forEach(btn => {
+            btn.onclick = () => {
                 calendar.changeView(btn.dataset.view);
-                viewMenu.classList.add('hidden');
-            });
+                dropdown.classList.add('hidden');
+            };
         });
-
-        // Modal open/close
-        const modal = document.getElementById('eventModal');
-        document.getElementById('openFormBtn').addEventListener('click', () => modal.classList.remove('hidden'));
-        document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.add('hidden'));
-        window.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
-
-        // Create Event
-        document.getElementById('eventForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const form = e.target;
-            const data = Object.fromEntries(new FormData(form).entries());
-
-            fetch(`{{ route('events.store') }}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrf,
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(async (r) => {
-                if(!r.ok) throw await r.json();
-                return r.json();
-            })
-            .then(() => {
-                calendar.refetchEvents();
-                form.reset();
-                modal.classList.add('hidden');
-                flash('Event saved & reminder scheduled', 'green');
-            })
-            .catch(err => {
-                let msg = 'Failed to save event';
-                if (err.errors) msg = Object.values(err.errors).flat().join(', ');
-                flash(msg, 'red');
-            });
-        });
-
-        function flash(message, color) {
-            const flashEl = document.getElementById('flash');
-            flashEl.textContent = message;
-            flashEl.className = `mt-4 p-3 rounded-lg text-sm font-medium bg-${color}-100 text-${color}-800`;
-            flashEl.classList.remove('hidden');
-            setTimeout(() => flashEl.classList.add('hidden'), 3000);
-        }
     });
 </script>
 @endsection
