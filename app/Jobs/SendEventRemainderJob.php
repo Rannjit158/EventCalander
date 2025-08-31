@@ -24,15 +24,14 @@ class SendEventRemainderJob implements ShouldQueue
 
     public function handle(): void
     {
-        // Check if reminder was already sent
+        
         if ($this->event->reminder_sent) {
             return;
         }
 
-        // Send the reminder email
+
         Mail::to($this->event->email)->send(new EventRemainderMail($this->event));
 
-        // Mark reminder as sent
         $this->event->update(['reminder_sent' => true]);
     }
 }

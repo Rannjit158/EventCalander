@@ -1,4 +1,4 @@
-<!-- filepath: resources/views/events/create.blade.php -->
+
 @extends('layouts.guest')
 
 @section('content')

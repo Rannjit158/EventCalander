@@ -9,20 +9,20 @@ use Carbon\Carbon;
 
 class EventController extends Controller
 {
-    // Show calendar and event list
+
     public function index()
     {
         $events = Event::orderBy('event_at', 'asc')->get();
         return view('events.index', compact('events'));
     }
 
-    // Show create event form
+
     public function create()
     {
         return view('events.create');
     }
 
-    // Store new event
+
     public function store(Request $request)
     {
         $request->validate([
@@ -45,14 +45,14 @@ class EventController extends Controller
         return redirect()->route('events.index')->with('success', 'Event created successfully.');
     }
 
-    // Show edit event form
+
     public function edit($id)
     {
         $event = Event::findOrFail($id);
         return view('events.edit', compact('event'));
     }
 
-    // Update event
+
     public function update(Request $request, $id)
     {
         $event = Event::findOrFail($id);
@@ -76,7 +76,7 @@ class EventController extends Controller
         return redirect()->route('events.index')->with('success', 'Event updated successfully.');
     }
 
-    // Delete event
+
     public function destroy($id)
     {
         $event = Event::findOrFail($id);
@@ -85,7 +85,7 @@ class EventController extends Controller
         return redirect()->route('events.index')->with('success', 'Event deleted successfully.');
     }
 
-    // Feed for FullCalendar AJAX
+   
     public function feed()
     {
         $events = Event::all()->map(function ($event) {
