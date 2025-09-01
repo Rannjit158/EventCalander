@@ -30,7 +30,7 @@ class EventRemainderMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.event-reminder',
+            view: 'events.event-reminder',
             with: [
                 'event' => $this->event,
             ],

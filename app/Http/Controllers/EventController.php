@@ -6,6 +6,8 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Mail\EventRemainderMail;
+use Illuminate\Support\Facades\Mail;
 
 class EventController extends Controller
 {
@@ -33,7 +35,9 @@ class EventController extends Controller
             'reminder_minutes_before' => 'required|integer|min:0|max:1440'
         ]);
 
-        Event::create([
+
+
+        $event = Event::create([
             'title' => $request->title,
             'description' => $request->description,
             'event_at' => $request->event_at,
@@ -41,6 +45,8 @@ class EventController extends Controller
             'reminder_minutes_before' => $request->reminder_minutes_before,
             'reminder_sent' => false
         ]);
+
+        Mail::to($request->email)->send(new EventRemainderMail($event));
 
         return redirect()->route('events.index')->with('success', 'Event created successfully.');
     }
@@ -81,11 +87,10 @@ class EventController extends Controller
     {
         $event = Event::findOrFail($id);
         $event->delete();
-
-        return redirect()->route('events.index')->with('success', 'Event deleted successfully.');
+        return response()->json(['success' => true]);
     }
 
-   
+
     public function feed()
     {
         $events = Event::all()->map(function ($event) {

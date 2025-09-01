@@ -80,8 +80,8 @@
 
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet'>
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.css' rel='stylesheet'>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js'></script>
 
 <script>
 $(document).ready(function() {
@@ -107,30 +107,37 @@ $(document).ready(function() {
         $('.dropdownMenu').addClass('hidden');
     });
 
+    $(document).on('click', '.deleteEvent', function(e) {
+    e.preventDefault();
+    var id = $(this).data('id');
 
-    $('.deleteEvent').click(function() {
-        if(!confirm('Are you sure you want to delete this event?')) return;
-        var id = $(this).data('id');
-        $.ajax({
-            url: '/events/' + id,
-            type: 'DELETE',
-            data: { _token: '{{ csrf_token() }}' },
-            success: function(response){
-                $('#event-row-' + id).remove();
-                calendar.refetchEvents();
-                alert('Event deleted successfully!');
-            },
-            error: function(err){
-                alert('Failed to delete event!');
-            }
-        });
+    if (!confirm('Are you sure you want to delete this event?')) return;
+
+    $.ajax({
+        url: '/events/' + id,
+        type: 'DELETE',
+        data: { _token: '{{ csrf_token() }}' },
+        success: function(response) {
+
+            $('#event-row-' + id).fadeOut(300, function() { $(this).remove(); });
+
+
+            var eventObj = calendar.getEventById(id);
+            if(eventObj) eventObj.remove();
+
+            alert('Event deleted successfully!');
+        },
+        error: function(err) {
+            alert('Failed to delete event!');
+        }
     });
-
+});
 
     var calendarEl = document.getElementById('calendar');
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         height: 700,
+         timeZone: 'Asia/Kathmandu',
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
