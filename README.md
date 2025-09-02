@@ -33,5 +33,4 @@ It allows users to **create, view, edit, and delete events** with a calendar int
 
 ---
 
- <repository-url>
-cd event-calendar
+
