@@ -24,5 +24,5 @@
         </p>
     </div>
 
-    <p class="text-gray-700">Don't forget to prepare for your event! 🚀</p>
+    <p class="text-gray-700">Don't forget to prepare for your event! </p>
 @endsection

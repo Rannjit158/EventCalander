@@ -3,7 +3,7 @@
 @section('content')
 <div class="bg-white p-6 rounded-2xl shadow max-w-full mx-auto">
 
-    {{-- Flash Messages --}}
+
     @if(session('success'))
         <div class="mb-4 p-3 rounded bg-green-100 text-green-800">
             {{ session('success') }}
@@ -15,11 +15,12 @@
         </div>
     @endif
 
-    {{-- Header --}}
+
     <div class="flex justify-between items-center mb-4">
         <h1 class="text-2xl font-bold text-blue-700">Event Calendar</h1>
 
-        <div class="flex space-x-2">
+        
+        <div class="hidden md:flex space-x-2">
             <div class="relative">
                 <button id="viewDropdownBtn"
                         class="bg-gray-100 px-4 py-2 rounded shadow hover:bg-gray-200 flex items-center">
@@ -39,12 +40,20 @@
                + Add Event
             </a>
         </div>
+
+
+        <div class="md:hidden">
+            <a href="{{ route('events.create') }}"
+               class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded shadow text-sm">
+               + Add
+            </a>
+        </div>
     </div>
 
-    {{-- Calendar --}}
+
     <div id="calendar"></div>
 
-    {{-- Event List --}}
+
     <h2 class="text-xl font-semibold mt-8 mb-4 text-blue-700">Event List</h2>
     <div class="overflow-x-auto">
         <table class="w-full text-sm border border-gray-200 rounded">
@@ -61,7 +70,7 @@
                 <tr class="border-t hover:bg-gray-50" id="event-row-{{ $event->id }}">
                     <td class="px-4 py-2 font-medium">{{ $event->title }}</td>
                     <td class="px-4 py-2">
-                        {{-- Convert to Nepal timezone --}}
+
                         {{ \Carbon\Carbon::parse($event->event_at)->format('M d, Y h:i A') }}
                     </td>
                     <td class="px-4 py-2">{{ $event->email }}</td>
@@ -82,14 +91,15 @@
     </div>
 </div>
 
-{{-- Scripts --}}
+
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.css' rel='stylesheet'>
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js'></script>
 
 <script>
 $(document).ready(function() {
-    // View dropdown
+
+
     $('#viewDropdownBtn').click(function() {
         $('#viewDropdown').toggleClass('hidden');
     });
@@ -99,7 +109,7 @@ $(document).ready(function() {
         }
     });
 
-    // Delete event
+
     $(document).on('click', '.deleteEvent', function(e) {
         e.preventDefault();
         var id = $(this).data('id');
@@ -124,22 +134,52 @@ $(document).ready(function() {
         });
     });
 
-    // FullCalendar init
+
     var calendarEl = document.getElementById('calendar');
     var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        height: 700,
+        initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth',
+        height: window.innerWidth < 768 ? 'auto' : 700,
 
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
             right: ''
         },
-        events: '{{ route('events.feed') }}'
+        events: '{{ route('events.feed') }}',
+
+        eventTimeFormat: {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        },
+
+        eventContent: function(arg) {
+            let timeText = arg.timeText;
+
+
+            if (arg.view.type === 'dayGridMonth' || arg.view.type === 'timeGridWeek') {
+                return {
+                    html: `
+                        <div style="
+                            display:inline-block;
+                            padding:2px 6px;
+                            background:#dbeafe;
+                            color:#1e40af;
+                            font-size:12px;
+                            font-weight:600;
+                            border-radius:6px;
+                        ">
+                            ${timeText}
+                        </div>`
+                };
+            }
+
+
+            return true;
+        }
     });
     calendar.render();
 
-    // Change view from dropdown
     $('#viewDropdown button[data-view]').click(function() {
         var view = $(this).data('view');
         calendar.changeView(view);
