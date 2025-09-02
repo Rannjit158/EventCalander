@@ -19,7 +19,7 @@
     <div class="flex justify-between items-center mb-4">
         <h1 class="text-2xl font-bold text-blue-700">Event Calendar</h1>
 
-        
+
         <div class="hidden md:flex space-x-2">
             <div class="relative">
                 <button id="viewDropdownBtn"
@@ -37,7 +37,7 @@
 
             <a href="{{ route('events.create') }}"
                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">
-               + Add Event
+               Add Event
             </a>
         </div>
 
